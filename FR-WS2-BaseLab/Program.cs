@@ -1,5 +1,7 @@
 using FR_WS2_BaseLab.Data;
 using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Implementations;
+using FR_WS2_BaseLab.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +27,8 @@ public class Program
         builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
+
+        builder.Services.AddScoped<ITopicService, TopicService>();
 
         var app = builder.Build();
 

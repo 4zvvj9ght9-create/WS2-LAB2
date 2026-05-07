@@ -1,51 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using FR_WS2_BaseLab.Models;
+using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace FR_WS2_BaseLab.Controllers;
 
 public class TopicsController : Controller
 {
-    private readonly FrWs2BaselabContext _context;
 
-    public TopicsController(FrWs2BaselabContext context)
+    private readonly ITopicService _topicService;
+    public TopicsController(ITopicService topicService)
     {
-        _context = context;
+        _topicService = topicService;
     }
 
     // GET: Topics
     public async Task<IActionResult> Index(int? id)
     {
+        if (id is null) return NotFound();
         ViewData["CategoryId"] = id;
-        var frWs2BaselabContext = _context.Topics.Where(t=>t.Id == id);
-        return View(await frWs2BaselabContext.ToListAsync());
+
+        var result = await _topicService.GetByCategoryIdAsync(id.Value);
+
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return View(new List<Topic>());
+        }
+
+        return View(result.Value);
     }
 
     // GET: Topics/Details/5
     public async Task<IActionResult> Details(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id is null) return NotFound();
 
-        var topic = await _context.Topics
-            .Include(t => t.Cat)
-            .Include(t => t.User)
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (topic == null)
-        {
-            return NotFound();
-        }
+        var result = await _topicService.GetDetailsAsync(id.Value);
 
-        return View(topic);
+        if (!result.Succeeded || result.Value is null) return NotFound();
+        
+        return View(result.Value);
     }
 
     // GET: Topics/Create
@@ -64,16 +66,24 @@ public class TopicsController : Controller
     [Authorize]
     public async Task<IActionResult> Create([Bind("CatId,UserId,Inactive,Title,Texte,Date,Views")] Topic topic)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            topic.Date = DateTime.Now; 
-            topic.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);  
-            _context.Add(topic);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index), new { id = topic.CatId});
+            ViewData["CategoryId"] = topic.CatId;
+            return View(topic);
         }
-        ViewData["CatId"] = topic.CatId;
-        return View(topic);
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _topicService.CreateAsync(topic, userId);
+
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            ViewData["CategoryId"] = topic.CatId;
+            return View(topic);
+        }
+
+        return RedirectToAction(nameof(Index), new { id = topic.CatId });
+
     }
 
     // GET: Topics/Edit/5
