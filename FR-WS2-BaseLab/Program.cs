@@ -15,6 +15,9 @@ public class Program
 
         // Add services to the container.
         var connectionString = builder.Configuration.GetConnectionString("FR-WS2-BASELAB") ?? throw new InvalidOperationException("Connection string 'FR-WS2-BASELAB' not found.");
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+        builder.Services.AddScoped<IPostService, PostService>();
         
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));  
