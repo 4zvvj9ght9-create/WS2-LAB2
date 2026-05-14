@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using FR_WS2_BaseLab.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using FR_WS2_BaseLab.Models;
 using FR_WS2_BaseLab.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FR_WS2_BaseLab.Controllers;
 
 public class CategoriesController : Controller
 {
     private readonly ICategoryService _categoryService;
+    private readonly IWebHostEnvironment _env;
 
-    public CategoriesController(ICategoryService categoryService)
+    public CategoriesController(ICategoryService categoryService, IWebHostEnvironment env)
     {
         _categoryService = categoryService;
+        _env = env;
     }
 
     // GET: Categories
@@ -60,14 +56,17 @@ public class CategoriesController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Create([Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Create([Bind("Inactive,Name,Description")] Category category, IFormFile? imageFile)
     {
         if (!ModelState.IsValid) return View(category);
+
+        category.Image = await SaveImageAsync(imageFile);
+
         var result = await _categoryService.CreateAsync(category);
         if (!result.Succeeded)
         {
             ModelState.AddModelError(string.Empty, result.ErrorMessage!);
-        return View(category);
+            return View(category);
         }
         TempData["SuccessMessage"] = "La catégorie a été créée avec succès.";
         return RedirectToAction(nameof(Index));
@@ -96,16 +95,20 @@ public class CategoriesController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "ADMINISTRATOR")]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Inactive,Name,Description,Image")] Category category)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Inactive,Name,Description,Image")] Category category, IFormFile? imageFile)
     {
         if (id != category.Id) return NotFound();
         if (!ModelState.IsValid) return View(category);
+
+        var newImage = await SaveImageAsync(imageFile);
+        if (newImage is not null)
+            category.Image = newImage;
 
         var result = await _categoryService.UpdateAsync(id, category);
         if (!result.Succeeded)
         {
             ModelState.AddModelError(string.Empty, result.ErrorMessage!);
-        return View(category);
+            return View(category);
         }
         TempData["SuccessMessage"] = "La catégorie a été modifiée avec succès.";
         return RedirectToAction(nameof(Index));
@@ -141,8 +144,19 @@ public class CategoriesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private bool CategoryExists(int id)
+    private async Task<string?> SaveImageAsync(IFormFile? file)
     {
-        return _categoryService.ExistsAsync(id).GetAwaiter().GetResult();
+        if (file is null || file.Length == 0) return null;
+
+        var ext = Path.GetExtension(file.FileName);
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var folder = Path.Combine(_env.WebRootPath, "images", "categories");
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, fileName);
+
+        using var stream = new FileStream(path, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/images/categories/{fileName}";
     }
 }

@@ -140,10 +140,10 @@ public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Inactive,Title,Tex
         if (!topic.Succeeded || topic.Value is null)
         {
               TempData["ErrorMessage"] = topic.ErrorMessage;
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { id = topic.Value?.CatId ?? 0 });
         }
 
-        return View(topic);
+        return View(topic.Value);
     }
 
     // POST: Topics/Delete/5
@@ -152,6 +152,8 @@ public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Inactive,Title,Tex
     [Authorize]
    public async Task<IActionResult> DeleteConfirmed(int id)
     {
+        var topic = await _topicService.GetForEditAsync(id);
+        var catId = topic.Value?.CatId;
         var result = await _topicService.DeleteAsync(id);
 
         if (!result.Succeeded)
@@ -161,6 +163,6 @@ public async Task<IActionResult> Edit(int id, [Bind("Id,CatId,Inactive,Title,Tex
         }
 
         TempData["SuccessMessage"] = "Le sujet a été supprimé avec succès.";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { id = catId });   
     }
 }
