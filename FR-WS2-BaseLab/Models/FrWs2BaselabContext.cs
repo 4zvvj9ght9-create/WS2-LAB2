@@ -34,6 +34,7 @@ public partial class FrWs2BaselabContext : DbContext
     public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<Topic> Topics { get; set; }
+    public virtual DbSet<CategoryImage> CategoryImages { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:FR-WS2-BASELAB");
@@ -183,7 +184,18 @@ public partial class FrWs2BaselabContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Topics_AspNetUsers");
         });
-
+        modelBuilder.Entity<CategoryImage>(entity =>
+        {
+            entity.Property(e => e.FileName).HasMaxLength(160);
+            entity.Property(e => e.OriginalFileName).HasMaxLength(255);
+            entity.Property(e => e.ContentType).HasMaxLength(100);
+            entity.Property(e => e.AltText).HasMaxLength(120);
+            entity.HasOne(d => d.Category)
+                .WithMany(p=> p.CategoryImages)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CategoryImages_Categories_CategoryId");
+        });
         OnModelCreatingPartial(modelBuilder);
     }
 

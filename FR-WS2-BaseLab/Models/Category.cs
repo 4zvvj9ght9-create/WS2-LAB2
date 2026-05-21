@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace FR_WS2_BaseLab.Models;
 
 public partial class Category
@@ -21,4 +22,6 @@ public partial class Category
     public virtual ICollection<Image> Images { get; set; } = new List<Image>();
 
     public virtual ICollection<Topic> Topics { get; set; } = new List<Topic>();
+    public virtual ICollection<CategoryImage> CategoryImages { get; set; } = new List<CategoryImage>();
 }
+
