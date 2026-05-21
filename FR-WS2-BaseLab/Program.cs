@@ -39,6 +39,7 @@ public class Program
 
         // Services Métier 
         builder.Services.AddScoped<ITopicService, TopicService>();
+        builder.Services.AddScoped<ICategoryImageService, CategoryImageService>();
        // builder.Services.AddScoped<ICategoryService, CategoryService>();
        // builder.Services.AddScoped<IPostService, PostService>();
         

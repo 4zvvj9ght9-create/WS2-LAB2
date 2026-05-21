@@ -17,7 +17,7 @@
                 Téléverser
             </button>
         </div>
-        <small class="text-muted">JPG, PNG, GIF ou WEBP — max 5 Mo</small>
+        <small class="text-muted">JPG, PNG, GIF ou WEBP — max 2 Mo</small>
         <div id="uploadMessage" class="mt-2"></div>
     </form>
 </div>
@@ -27,7 +27,7 @@
     @foreach (var img in Model.CategoryImages)
     {
         <div class="card" style="width: 200px;" id="card-@img.Id">
-            <img src="/uploads/categories/@img.FileName"
+            <img src="/uploads/categories/@Model.Id/@img.FileName"
                  class="card-img-top"
                  alt="@img.AltText"
                  style="height: 150px; object-fit: cover;" />
@@ -68,7 +68,7 @@
             showMessage('Téléversement en cours...', 'info');
  
             try {
-                const response = await fetch(`/CategoryImages/Upload/${categoryId}`, {
+                const response = await fetch(`/categories/${categoryId}/images/upload`, {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': token },
                     body: formData
@@ -78,8 +78,8 @@
  
                 if (result.success) {
                     showMessage('Image téléversée avec succès!', 'success');
-                    addImageToGallery(result);
-                    input.value = ''; // Réinitialiser le champ
+                    addImageToGallery(result.data);
+                    input.value ='';
                 } else {
                     showMessage(result.message || 'Erreur lors du téléversement.', 'danger');
                 }
@@ -121,8 +121,8 @@
             const formData = new FormData();
             formData.append('id', imageId);
  
-            const response = await fetch(`/CategoryImages/Delete/${imageId}`, {
-                method: 'POST',
+            const response = await fetch(`/categories/${categoryId}/images/${imageId}`, {
+                method: 'DELETE',
                 headers: { 'RequestVerificationToken': token }
             });
  

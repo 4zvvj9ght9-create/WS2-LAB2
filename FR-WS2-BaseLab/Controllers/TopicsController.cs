@@ -32,7 +32,7 @@ public class TopicsController : Controller
 
         if (!result.Succeeded)
         {
-            TempData["ErrorMessage"] = result.ErrorMessage;
+            TempData["ErrorMessage"] = result.Error;
             return View(new List<Topic>());
         }
 
@@ -78,7 +78,7 @@ public class TopicsController : Controller
 
         if (!result.Succeeded)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            ModelState.AddModelError(string.Empty, result.Error!);
             ViewData["CategoryId"] = topic.CatId;
             return View(topic);
         }
@@ -114,7 +114,7 @@ public class TopicsController : Controller
             var result = await _topicService.UpdateAsync(id, topic);
             if (!result.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+                ModelState.AddModelError(string.Empty, result.Error!);
                 return View(topic);
             }               
             return RedirectToAction(nameof(Index), new { id = topic.CatId });
@@ -149,7 +149,7 @@ public class TopicsController : Controller
 
          if (!result.Succeeded)
         {
-            TempData["ErrorMessage"] = result.ErrorMessage;
+            TempData["ErrorMessage"] = result.Error;
             return RedirectToAction(nameof(Index), new { id = catId });
         }
         return RedirectToAction(nameof(Index), new { id = catId });

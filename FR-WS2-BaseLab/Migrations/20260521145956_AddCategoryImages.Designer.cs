@@ -4,6 +4,7 @@ using FR_WS2_BaseLab.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FR_WS2_BaseLab.Migrations
 {
     [DbContext(typeof(FrWs2BaselabContext))]
-    partial class FrWs2BaselabContextModelSnapshot : ModelSnapshot
+    [Migration("20260521145956_AddCategoryImages")]
+    partial class AddCategoryImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
